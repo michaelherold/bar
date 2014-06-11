@@ -37,6 +37,7 @@ typedef struct area_t {
     int begin, end, align, button;
     xcb_window_t window;
     char *cmd;
+    char *cmd2;
 } area_t;
 
 #define N 20
@@ -243,6 +244,7 @@ area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x
         return false;
     }
 
+
     /* A wild close area tag appeared! */
     if (*p != ':') {
         *end = p;
@@ -273,7 +275,18 @@ area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x
         return true;
     }
 
-    char *trail = strchr(++p, ':');
+    char *end_cmd1 = strchr(++p, ':');
+    char *cmd1 = p;
+    char *cmd2 = NULL;
+    char *trail = end_cmd1;
+    end_cmd1++;
+
+    if (*end_cmd1 != '}' && *end_cmd1 != ':')
+    {
+	    *trail = '\0';
+	    trail = strchr(end_cmd1, ':');
+	    cmd2 = end_cmd1;
+    }
 
     /* Find the trailing : and make sure it's whitin the formatting block, also reject empty commands */
     if (!trail || p == trail || trail > optend) {
@@ -284,7 +297,8 @@ area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x
     *trail = '\0';
 
     /* This is a pointer to the string buffer allocated in the main */
-    a->cmd = p;
+    a->cmd = cmd1;
+    a->cmd2 = cmd2;
     a->align = align;
     a->begin = x;
     a->window = mon->window;
@@ -1083,9 +1097,18 @@ main (int argc, char **argv)
                             {
                                 area_t *area = area_get(press_ev->event, press_ev->event_x);
                                 /* Respond to the click */
-                                if (area && area->button == press_ev->detail) {
-                                    write(STDOUT_FILENO, area->cmd, strlen(area->cmd)); 
-                                    write(STDOUT_FILENO, "\n", 1); 
+                                //if (area && area->button == press_ev->detail) {
+                                if (area) {
+					if (press_ev->detail == 1)
+					{
+                                    		write(STDOUT_FILENO, area->cmd, strlen(area->cmd)); 
+                                                write(STDOUT_FILENO, "\n", 1); 
+					}
+					if (press_ev->detail == 3 && area->cmd2 != NULL)
+					{
+                                    		write(STDOUT_FILENO, area->cmd2, strlen(area->cmd2)); 
+                                                write(STDOUT_FILENO, "\n", 1); 
+					}
                                 }
                             }
                             break;
