@@ -38,6 +38,7 @@ typedef struct area_t {
     xcb_window_t window;
     char *cmd;
     char *cmd2;
+    bool print_pos;
 } area_t;
 
 #define N 20
@@ -244,6 +245,10 @@ area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x
         return false;
     }
 
+    if (*p == 'W') {
+    	a->print_pos = true;
+    	p++;
+    }
 
     /* A wild close area tag appeared! */
     if (*p != ':') {
@@ -1097,11 +1102,21 @@ main (int argc, char **argv)
 					if (press_ev->detail == 1)
 					{
                                     		write(STDOUT_FILENO, area->cmd, strlen(area->cmd)); 
+                                		if (area->print_pos) {
+                                			char pos[6];
+                                			snprintf(pos, 6, " %d", area->begin);
+                                			write(STDOUT_FILENO, pos, 6);
+                                		}
                                                 write(STDOUT_FILENO, "\n", 1); 
 					}
 					if (press_ev->detail == 3 && area->cmd2 != NULL)
 					{
                                     		write(STDOUT_FILENO, area->cmd2, strlen(area->cmd2)); 
+                                		if (area->print_pos) {
+                                			char pos[6];
+                                			snprintf(pos, 6, " %d", area->begin);
+                                			write(STDOUT_FILENO, pos, 6);
+                                		}
                                                 write(STDOUT_FILENO, "\n", 1); 
 					}
                                 }
