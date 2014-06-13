@@ -34,7 +34,7 @@ typedef struct monitor_t {
 } monitor_t;
 
 typedef struct area_t {
-    int begin, end, align, button;
+    int begin, end, align;
     xcb_window_t window;
     char *cmd;
     char *cmd2;
@@ -234,7 +234,7 @@ area_shift (xcb_window_t win, const int align, int delta)
 }
 
 bool
-area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x, const int align, const int button)
+area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x, const int align)
 {
     char *p = str;
     area_t *a = &astack.slot[astack.pos];
@@ -302,7 +302,6 @@ area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x
     a->align = align;
     a->begin = x;
     a->window = mon->window;
-    a->button = button;
 
     *end = trail + 1;
 
@@ -314,7 +313,7 @@ parse (char *text)
 {
     font_t *cur_font;
     monitor_t *cur_mon;
-    int pos_x, align, button;
+    int pos_x, align;
     char *p = text, *end;
     uint32_t tmp;
 
@@ -353,11 +352,7 @@ parse (char *text)
                     case 'r': pos_x = 0; align = ALIGN_R; break;
 
                     case 'A': 
-                              button = XCB_BUTTON_INDEX_1;
-                              /* The range is 1-5 */
-                              if (isdigit(*p) && (*p > '0' && *p < '6'))
-                                  button = *p++ - '0';
-                              area_add(p, end, &p, cur_mon, pos_x, align, button);
+                              area_add(p, end, &p, cur_mon, pos_x, align);
                               break;
 
                     case 'B': bgc = parse_color(p, &p, dbgc); update_gc(); break;
